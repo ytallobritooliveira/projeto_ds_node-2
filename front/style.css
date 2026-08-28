@@ -1,0 +1,35 @@
+/* Estiliza o body inteiro da página */
+body {
+    font-family: sans-serif;   /* fonte sem serifa, mais limpa */
+    max-width: 500px;          /* largura máxima do conteúdo */
+    margin: 40px auto;         /* 40px em cima/baixo, "auto" centraliza horizontalmente */
+    padding: 0 20px;           /* respiro nas laterais em telas pequenas */
+  }
+  
+  /* Estiliza o formulário */
+  form {
+    display: flex;              /* organiza os filhos (inputs/botão) em linha ou coluna */
+    flex-direction: column;     /* empilha os filhos verticalmente */
+    gap: 10px;                  /* espaço de 10px entre cada filho */
+    margin-bottom: 30px;        /* espaço embaixo do form, antes da lista */
+  }
+  
+  /* Estiliza inputs e botão igual (mesmo tamanho de fonte/padding) */
+  input, button {
+    padding: 8px;
+    font-size: 14px;
+  }
+  
+  /* Estiliza só o botão */
+  button {
+    cursor: pointer;    /* mãozinha ao passar o mouse, indicando que é clicável */
+    background: #333;   /* fundo cinza escuro */
+    color: #fff;        /* texto branco */
+    border: none;       /* remove a borda padrão do navegador */
+  }
+  
+  /* Estiliza cada item <li> da lista de usuários */
+  #listaUsuarios li {
+    padding: 6px 0;               /* respiro em cima/baixo de cada item */
+    border-bottom: 1px solid #ddd; /* linha fina separando um usuário do outro */
+  }

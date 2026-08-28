@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Cadastro de Usuários</title>
+  <!-- Liga o arquivo de estilos. Caminho relativo: mesma pasta do HTML -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <h1>Cadastro de Usuários</h1>
+
+  <!-- 
+    Formulário de cadastro. 
+    Cada <input> tem um "id" único, que o JS vai usar pra pegar o valor digitado.
+    "required" = navegador não deixa enviar o form se o campo estiver vazio.
+  -->
+  <form id="formCadastro">
+    <input type="text" id="nome" placeholder="Nome" required>
+    <input type="text" id="login" placeholder="Login" required>
+    <!-- maxlength="10" porque no banco a coluna senha é VARCHAR(10) -->
+    <input type="password" id="senha" placeholder="Senha" maxlength="10" required>
+    <button type="submit">Cadastrar</button>
+  </form>
+
+  <h2>Usuários cadastrados</h2>
+
+  <!-- Lista vazia, que vai ser preenchida via JavaScript (script.js) -->
+  <ul id="listaUsuarios"></ul>
+
+  <!-- 
+    Importa o script.js no FINAL do body de propósito:
+    assim, quando o script rodar, o HTML acima já existe na página
+    (senão document.getElementById poderia retornar null).
+  -->
+  <script src="script.js"></script>
+</body>
+</html>
