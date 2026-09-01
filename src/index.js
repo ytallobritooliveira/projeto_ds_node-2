@@ -6,7 +6,7 @@ const express = require('express')
 // Importa o pool de conexão que você configurou no outro arquivo.
 // '../config/database' = sobe uma pasta (de src/ pra raiz) e entra em config/
 
-const connection = require('../config/database'); // Conecta com o connection.js
+const db = require('../config/database'); // Conecta com o database.js
 
 // Importa o pacote cors, que serve pra "destravar" o navegador
 // quando o front (rodando numa origem, ex: file:// ou localhost:5500)
