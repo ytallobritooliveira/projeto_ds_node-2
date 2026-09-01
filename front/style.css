@@ -3,7 +3,8 @@ body {
     font-family: sans-serif;   /* fonte sem serifa, mais limpa */
     max-width: 500px;          /* largura máxima do conteúdo */
     margin: 40px auto;         /* 40px em cima/baixo, "auto" centraliza horizontalmente */
-    padding: 0 20px;           /* respiro nas laterais em telas pequenas */
+    padding: 0 20px;  
+    background-image: url(aura.....png);         /* respiro nas laterais em telas pequenas */
   }
   
   /* Estiliza o formulário */
