@@ -1,93 +1,101 @@
-// Importa o Express, framework que facilita criar rotas HTTP
-// (GET, POST, etc) sem ter que lidar com o módulo "http" puro do Node.
+// ========================================
+// Esse arquivo é a "ROTA" (também chamado de Controller)
+// Rota = a parte do código que conversa com o MUNDO DE FORA
+// (o navegador, o Postman, qualquer um que acessar sua API).
+// Ele NÃO sabe fazer SQL. Quando precisa de dado do banco,
+// ele pede educadamente pro Model (aquele outro arquivo que a gente viu).
+// ========================================
 
-const express = require('express')
+// Pega emprestado o Express, que é a ferramenta que cria o "servidor"
+// (o servidor é tipo um atendente que fica esperando alguém bater na porta
+// pra responder pedidos)
+const express = require('express');
 
-// Importa o pool de conexão que você configurou no outro arquivo.
-// '../config/database' = sobe uma pasta (de src/ pra raiz) e entra em config/
+// Pega emprestado o cors, que serve pra destravar o navegador.
+// Sem isso, o navegador tem medo e bloqueia a resposta da API por segurança.
+const cors = require('cors');
 
-const db = require('../config/database'); // Conecta com o database.js
+// AQUI é a parte nova: pega emprestado o UsuarioModel inteiro
+// (aquelas duas funções que a gente exportou lá em cima: listarUsuarios e criarUsuario)
+// '../model/UsuarioModel' = sobe uma pasta (sai de src/) e entra em model/
+const UsuarioModel = require('../model/UsuarioModel');
 
-// Importa o pacote cors, que serve pra "destravar" o navegador
-// quando o front (rodando numa origem, ex: file:// ou localhost:5500)
-// tenta fazer fetch pra API (rodando em localhost:3000).
-// Sem isso, o navegador BLOQUEIA a resposta por segurança (Same-Origin Policy).
-
-const cors = require('cors')
-
-// Cria a aplicação Express. É esse "app" que vai guardar todas as rotas.
-
+// Cria o "app" = isso é literalmente o servidor sendo criado.
+// A partir daqui, "app" é o objeto que vai guardar TODAS as rotas.
 const app = express();
 
-// Middleware = função que roda ANTES das rotas, em toda requisição.
-// app.use(cors()) libera qualquer site (origem) a acessar essa API.
-// Sem parâmetro = libera geral (bom só pra desenvolvimento).
+// app.use() = "roda isso ANTES de qualquer rota, sempre, em toda requisição"
+// cors() libera o acesso de fora
 app.use(cors());
 
-// Middleware que ensina o Express a entender JSON no corpo (body)
-// das requisições. Sem isso, "req.body" chegaria undefined
-// quando o front mandar dados no POST.
+// express.json() ensina o servidor a entender quando alguém manda
+// dados em formato JSON no corpo (body) da requisição.
+// Sem isso, req.body chegaria vazio (undefined) e o POST não funcionaria.
+app.use(express.json());
 
-app.use(express.json()); // Permite que o express entenda requisições com JSON no corpo da requisição.
-
-app.get("/", (req, res) => { //o app.get pode ser chamado de rota ou endpoint
-    res.send("AURA MAIS REGOOOOOOOOOOOOOOOOOOOOOOoooo");
+// ----------------------------------------
+// ROTA 1: a rota raiz, só um "oi, tô vivo"
+// ----------------------------------------
+// app.get(caminho, função) = "quando alguém acessar esse caminho com GET,
+// roda essa função aqui"
+app.get("/", (req, res) => {
+  // req = o que a pessoa mandou pra gente (request = pedido)
+  // res = o que a gente vai responder pra pessoa (response = resposta)
+  res.send("AURA MAIS REGOOOOOOOOOOOOOOOOOOOOOOOOooo");
 });
-//isso pode ser chamado de rota ou endpoint.
-// Rota GET "/usuarios" - lista todos os usuários cadastrados.
-// "async" porque dentro tem "await" (esperar o banco responder).
-app.get('/usuarios', async (req, res) => {
-  try {
-    // connection.query() manda o SQL pro banco e espera a resposta.
-    // O retorno do mysql2 vem num array: [linhas, metadados].
-    // Por isso desestruturamos só a primeira posição: [usuarios]
-    const [usuarios] = await connection.query(
-      'SELECT id_usuario, nome, login FROM usuarios'
-      // Reparo: NÃO seleciono "senha" aqui de propósito.
-      // Não faz sentido a API devolver senha pro front, mesmo em projeto de estudo.
-    );
 
-    // res.json() converte o array de usuários em JSON
-    // e já manda com o header Content-Type correto.
+// ----------------------------------------
+// ROTA 2: listar todos os usuários
+// ----------------------------------------
+app.get('/usuarios', async (req, res) => {
+
+  // try/catch = "tenta fazer isso, e SE der erro, não trava o programa,
+  // só cai no catch e trata o erro com calma"
+  try {
+
+    // AQUI é a mágica do MVC: em vez de escrever SQL aqui dentro,
+    // a gente só CHAMA a função que já existe lá no Model.
+    // "await" porque essa função demora (ela mexe com o banco lá dentro).
+    const usuarios = await UsuarioModel.listarUsuarios();
+
+    // res.json() = "responde pra quem pediu, em formato JSON,
+    // com a lista de usuários que o Model trouxe"
     res.json(usuarios);
 
   } catch (error) {
-    // Se der qualquer erro (banco fora do ar, SQL errado, etc),
-    // cai aqui em vez de derrubar o servidor.
-    console.error(error); // mostra o erro no terminal, pra você debugar
+    // Se algo der errado (banco caiu, erro de digitação no SQL, etc),
+    // cai aqui em vez de derrubar o servidor inteiro.
+    console.error(error); // mostra o erro no terminal, só pra você (o dev) ver
     res.status(500).json({ erro: 'Erro ao buscar dados no banco' });
-    // status 500 = "erro interno do servidor"
+    // status 500 = código que significa "deu erro do lado do servidor"
   }
 });
 
-// Rota POST "/usuarios" - cadastra um novo usuário.
-// POST é usado quando você está ENVIANDO dados pra criar algo novo.
+// ----------------------------------------
+// ROTA 3: cadastrar um usuário novo
+// ----------------------------------------
 app.post('/usuarios', async (req, res) => {
-// req.body é o JSON que o front mandou no fetch (body: JSON.stringify(...))
-// Aqui a gente já "desestrutura" pegando só os 3 campos que interessam.
-  const {nome, login, senha} = req.body
-   // Validação simples: se faltar algum campo, nem tenta salvar no banco.
-  if (!nome || !login || !senha) {
-    return res.status(400).json({ erro: 'Preencha nome, login e senha' });
-    // status 400 = "requisição inválida" (erro de quem mandou os dados)
-    // o "return" aqui é pra PARAR a função, senão ela ia continuar
-    // e tentar rodar o INSERT mesmo sem os dados.
-  }
-  try {
-    // Query parametrizada: os "?" são substituídos pelos valores do array,
-    // NA ORDEM que aparecem. Isso é importante por SEGURANÇA:
-    // evita SQL Injection (alguém digitar SQL malicioso no campo nome, por ex).
-    // NUNCA faça isso concatenando string tipo `INSERT INTO... VALUES ('${nome}'...)`.
-    const [resultado] = await connection.query(
-      'INSERT INTO usuarios (nome, login, senha) VALUES (?, ?, ?)',
-      [nome, login, senha]
-    );
 
-    // "resultado" é um objeto com informações do INSERT.
-    // resultado.insertId = o ID que o MySQL gerou automaticamente (AUTO_INCREMENT)
-    // pra esse novo usuário.
+  // req.body = os dados que a pessoa mandou (vindos do formulário do front, por ex)
+  // Aqui a gente "desembrulha" o objeto e já pega os 3 campos que interessam
+  const { nome, login, senha } = req.body;
+
+  // Confere se os 3 campos vieram preenchidos.
+  // "!nome" significa "se nome NÃO existir / estiver vazio"
+  if (!nome || !login || !senha) {
+    // return = PARA a função aqui, não deixa continuar pro resto do código
+    return res.status(400).json({ erro: 'Preencha nome, login e senha' });
+    // status 400 = "o pedido que você mandou tá incompleto/errado"
+  }
+
+  try {
+    // De novo: não faz SQL aqui, só chama a função pronta do Model,
+    // passando os 3 dados que ela pede.
+    const resultado = await UsuarioModel.criarUsuario(nome, login, senha);
+
+    // resultado.insertId = o ID novo que o MySQL gerou sozinho pro usuário
     res.status(201).json({ id_usuario: resultado.insertId, nome, login });
-    // status 201 = "criado com sucesso" (padrão pra POST que cria algo)
+    // status 201 = "criado com sucesso" (o código certo pra usar em POST que cria algo)
 
   } catch (error) {
     console.error(error);
@@ -95,6 +103,8 @@ app.post('/usuarios', async (req, res) => {
   }
 });
 
-// Exporta o "app" pronto (com todas as rotas configuradas)
-// pra ser usado no server.js, que é quem realmente "liga" o servidor.
+// ----------------------------------------
+// Empresta o "app" pronto (com todas as rotas já configuradas)
+// pro server.js poder usar e ligar o servidor de verdade.
+// ----------------------------------------
 module.exports = app;
